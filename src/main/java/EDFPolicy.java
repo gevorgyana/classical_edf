@@ -1,135 +1,139 @@
-import java.util.List;
+import Exceptions.NegativeTickValueException;
+import Exceptions.RunOutOfTasksException;
+import Exceptions.SchedulabilityViolationException;
+
+import java.util.ArrayList;
+import java.util.logging.Logger;
 
 /**
- * Earliest deadline first policy
- *
- * Note! The SCHED_DEADLINE uses CBS algorithm,
- * which is a solution to the soft real time
- * scheduling problem; in this simulation, we
- * are working with hard real-time limitations, so
- * the fact that much of what is said in the documentation
- * about CBS is not used in this simulation should not be
- * confusing
- *
- * Limitations and applications:
- *
- * - no task is able to break its worst case
- * execution time guarantee; a task is required to
- * obey its worst case promise, and the system
- * makes sure that the tasks's deadline will be
- * respected;
- *
- * (it is possible to provide a mechanism to
- * in the EDFPolicy class to enforce deadline obedience even if
- * some process misbehaves (this is not real time anymore!),
- * but, generally speaking,
- * it will require other technique like CSB
- * (Constant Bandwidth Server) and is out of the scope of
- * this simulation)
- *
- * - currently, the notion of periodicity is not accepted;
- * a task can run in sporadic mode only
- * (once it executes, it disappears);
- *
- * TODO this simulation may be easily extended to
- * support periodic tasks; conceptually it is
- * similar to automated 'revival' of the task every PERIOD
- * number of steps, and in equivalent to just creating a new
- * task by hand, therefore it has nothing to do
- * with the algorithm (for description of periodic and
- * sporadic tasks, see documentation for deadline scheduler, section 3)
- *
- * - the tasks are not allowed to block in the middle of
- * their execution; this is called  Liu and Layland
- * model of task execution (for explanation of the difficulties the
- * self-blocking tasks introduce, see Constant Bandwidth Server Revisited,
- * for example, here http://ceur-ws.org/Vol-1291/ewili14_5.pdf), also here
- * is my own explanation why this case is difficult
- *
- * Classical EDF does not deal with blocking in the middle of their execution tasks;
- * and the Wikipedia is confusing by not providing a link to the original article
- * which explains that.
- *
- * The reason why the classical EDF cannot be applied (at least, without proper
- * modifications) is that according to the classical problem statement the system
- * is only restricted on being able to finish the task before a specific absolute point in time;
- * in case we want to allow the tasks to block at well-defined intervals, the restriction on the
- * scheduler becomes much more harsh.
- *
- * Here is an example that demonstrates that the problem is more complex if
- * we allow tasks to block at well-defined points in time (I do not even consider
- * the problem when a task is allowed to block during any time interval,
- * as it is becoming to make little sense to demand from a scheduler being able to guarantee
- * hard real-time behaviour in this case):
- *
- * The example:
- *
- * Case 1 (tasks can be executed at any point in time)
- * task 1 : (deadline at 6, runtime 3)
- * task 2 : (deadline at 6, runtime 3)
- *
- * we can run them as follows:
- * task 1 takes 3 points and returns, then task 2 takes 3 points and returns;
- *
- * Case 2 (restriction on when exactly tasks can execute)
- * task 1 : (deadline at 6, runtime 3 total, can execute at 1, 2, 4)
- * task 2 : (deadline at 6, runtime 3 total, can execute at 4, 5, 6)
- *
- * We cannot accept the tasks, as their execution times overlap and there is no
- * time available to execute both of them, while at point 3 we are making no progress
- * But the classical EDF would accept these tasks. A simple idea how to extend the classical
- * EDF check is by making sure that there is no time overlap, and even if there is, we are still
- * still have enough time to do the work before deadline. But this is a substantial modification of
- * the algorithm and is therefore not implemented here
- *
- * Also, there is a theoretical issue with this implementation, called
- * priority inversion (in short, it happens when a process with lower priority (earliest deadline
- * in our case) blocks on
- * some resource, and the task with higher priority is forced to wait until the task with lower priority finishes),
- * which can be solved with a technique called priority inheritance, it is not considered in code
+ * Contains logic regarding Earliest Deadline First policy
  * */
+
+// BUG  edf policy does not track which objects have been executed
+// neither does it check if the acceptedQueue is empty
 
 public class EDFPolicy {
 
-    /**
-     * New tasks appear in this buffer and
-     * are then checked before allowing the system
-     * to proceed; this guarantees that the system
-     * is schedulable;
-     * */
+    private ArrayList<Task> pendingTasks;
+    private EDFTasksContainer acceptedTasks;
+    private LazyTicker ticker;
+    private Logger logger;
+    Task currentTask = null;
 
-    private List<Task> nextToBeRegistered;
+    EDFPolicy(LazyTicker ticker, Logger logger) {
 
-    /**
-     * This is called independently in the same thread as the
-     * scheduling function to enforce linear
-     * order for better testing; it means that
-     * the api is as follows:
-     * - schedule (management),
-     * - register new tasks (processes all at once -> if some of them
-     * make the system not schedulable, the system will not try
-     * to accept at least a subset of the tasks, maybe it should be left
-     * as a TODO-item, but it is not the focus of this simulation)
-     * */
+        this.ticker = ticker;
+        this.logger = logger;
+        acceptedTasks = new EDFTasksContainer();
+        pendingTasks = new ArrayList<>();
+    }
 
-    void acceptTask() {
+    void acceptTasks(ArrayList<Task> tasks) {
 
+        for (Task task : tasks) {
+            acceptTasks(task);
+        }
+    }
+
+    void acceptTasks(Task task) {
+        pendingTasks.add(task);
+    }
+
+    void enforceSchedulability() throws SchedulabilityViolationException {
+
+        if (!pendingTasks.isEmpty()) {
+
+            EDFTasksContainer queueUnderTest = new EDFTasksContainer();
+            for (Task task : pendingTasks) {
+                queueUnderTest.add(task);
+            }
+
+            boolean feasible = true;
+            int ticksNeeded = 0;
+
+            for (Task task : queueUnderTest) {
+                ticksNeeded += task.getWorstCaseRunningTime();
+                feasible &= (ticksNeeded <= (task.getAbsoluteDeadline()));
+            }
+
+            if (feasible) {
+                acceptedTasks = queueUnderTest;
+                pendingTasks.clear();
+                return;
+            }
+
+            throw new SchedulabilityViolationException();
+        }
     }
 
     /**
-     * Throws when the new tasks registered in
-     * the internal buffer will make the system not
-     * schedulable
-     * */
+     * ssmart scheduler will select a subset of tasks*/
 
-    void enforceSchedulability() {
-        // implement simple algorithm here
+    private void tryConfirmNewTasks() {
+
+        if (!pendingTasks.isEmpty()) {
+
+            try {
+
+                enforceSchedulability();
+                logger.info("All pending tasks have been accepted");
+            }
+
+            catch (SchedulabilityViolationException e) {
+
+                logger.warning("Accepting pending tasks will make the system not schedulable;" +
+                        " all pending tasks are discarded");
+            }
+        }
     }
 
-    // controller is defined as a single step
-    // of execution in this simulation
-    // consumes tick and works
-    void controller() {
-        // deal with wakeup or arrival
+    private void rePickTaskOnDemand() {
+
+        if (currentTask == null) {
+
+            if (acceptedTasks.isEmpty()) {
+
+                logger.warning("The system does not do anything");
+                throw new RunOutOfTasksException();
+
+            } else {
+
+                currentTask = acceptedTasks.getNextTask();
+                logger.info("Task #" + currentTask.getTaskID() + " has been picked");
+            }
+        }
+    }
+
+    private void nextTick() {
+
+        ticker.nextTick();
+        logger.info("Tick happened - current time is " + ticker.getTicksCounter() + " ticks");
+    }
+
+    void executeTask() {
+
+        if (currentTask != null) {
+
+            try {
+                currentTask.consumeTick();
+                logger.info("Spending current time slice on task #" + currentTask.getTaskID());
+            }
+
+            catch (NegativeTickValueException e) {
+                logger.info("Task #" + currentTask.getTaskID() + " has finished");
+                currentTask = null;
+            }
+        }
+    }
+
+    void nextStep() throws RunOutOfTasksException {
+
+        tryConfirmNewTasks();
+
+        rePickTaskOnDemand();
+
+        executeTask();
+
+        nextTick();
     }
 }
