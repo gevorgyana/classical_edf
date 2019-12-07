@@ -5,7 +5,50 @@
             1
         </worstCaseRuntime>
         <absoluteDeadline>
-            1
+            2
+        </absoluteDeadline>
+        <arrivalTime>
+            0
+        </arrivalTime>
+    </task>
+
+    <task>
+        <worstCaseRuntime>
+            2
+        </worstCaseRuntime>
+        <absoluteDeadline>
+            5
+        </absoluteDeadline>
+        <arrivalTime>
+            0
+        </arrivalTime>
+    </task>
+    <task>
+        <worstCaseRuntime>
+            2
+        </worstCaseRuntime>
+        <absoluteDeadline>
+            4
+        </absoluteDeadline>
+        <arrivalTime>
+            
+        </arrivalTime>
+    </task>
+    <task>
+        <worstCaseRuntime>
+            2
+        </worstCaseRuntime>
+        <absoluteDeadline>
+            10
         </absoluteDeadline>
     </task>
+    <task>
+        <worstCaseRuntime>
+            2
+        </worstCaseRuntime>
+        <absoluteDeadline>
+            9
+        </absoluteDeadline>
+    </task>
+
 </tasks>

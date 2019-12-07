@@ -64,7 +64,8 @@ public class EDFPolicy {
     }
 
     /**
-     * ssmart scheduler will select a subset of tasks*/
+     * todo Smart scheduler would select a subset of tasks
+     * */
 
     private void tryConfirmNewTasks() {
 

@@ -1,3 +1,13 @@
+CLASSICAL EARLIEST DEADLINE FIRST SCHEDULER IMPLEMENTED IN USERSPACE WITH JAVA
+
+see examples to understand how this can be used
+it is analogous to facebook folly fibers
+
+// можно еще сделать таски такими, что они
+// они могут выполняться в любое время, но
+// занимать меньше времени, чем записано
+// в worstCaseRuntime
+
 /**
  * Earliest deadline first policy
  *

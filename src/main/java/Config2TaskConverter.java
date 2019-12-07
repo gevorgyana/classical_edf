@@ -11,14 +11,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
-// можно еще сделать таски такими, что они
-// они могут выполняться в любое время, но
-// занимать меньше времени, чем записано
-// в worstCaseRuntime
-
-// еще добавить рандома
-
 import static org.w3c.dom.Node.ELEMENT_NODE;
+
+/**
+ * A simple parser of xml file used to
+ * retrieve Task and todo TimedTask objects from files
+ * */
 
 public class Config2TaskConverter {
 
@@ -40,9 +38,10 @@ public class Config2TaskConverter {
             DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
             Document document = documentBuilder.parse(inputFile);
             document.getDocumentElement().normalize();
-            NodeList tasksXml = document.getElementsByTagName("tasks");
+            NodeList tasksXml = document.getElementsByTagName("task");
 
             for (int i = 0; i < tasksXml.getLength(); ++i) {
+
                 Node currentTask = tasksXml.item(i);
 
                 if (currentTask.getNodeType() == ELEMENT_NODE) {
@@ -58,9 +57,7 @@ public class Config2TaskConverter {
                                     taskIDManager
                             )
                     );
-
                 }
-
             }
 
         } catch (ParserConfigurationException | SAXException | IOException e) {
@@ -69,5 +66,4 @@ public class Config2TaskConverter {
 
         return tasksNative;
     }
-
 }

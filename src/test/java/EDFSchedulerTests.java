@@ -4,27 +4,37 @@ import org.junit.jupiter.api.*;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class EDFSchedulerTests {
 
     private TaskIDManager taskIDManager;
     private Logger logger;
     private LazyTicker ticker;
+    private TickHandler handler = null;
     private EDFPolicy scheduler;
 
-    @BeforeAll
-    private void setUp() {
+    private void setUpCommon() {
         taskIDManager = new TaskIDManager();
-        logger = Logger.getLogger("");
+        logger = Logger.getLogger("without handler");
         ticker = new LazyTicker();
         scheduler = new EDFPolicy(ticker, logger);
     }
 
+    private void setUpWithTickHandler(ArrayList<TimedTask> tasks) {
+        handler = new TickHandler(scheduler, tasks);
+        ticker = new LazyTicker(handler);
+    }
+
     @Test
-    public void foo() {
+    public void testWithoutTickHandler() {
+
+        // todo check that the log is correct - seems good
+
+        setUpCommon();
+
         ArrayList<Task> tasks = new ArrayList<Task>();
         tasks.add(new Task(2, 1, taskIDManager));
         tasks.add(new Task(5, 2, taskIDManager));
@@ -46,12 +56,73 @@ public class EDFSchedulerTests {
 
     @Test
     public void emptyTasksBuffer() {
+
+        setUpCommon();
+
         assertThrows(RunOutOfTasksException.class, () -> {
             scheduler.nextStep();
         });
     }
 
     /**
-     * Implement reading from a file - config!
+     * it is not possible to use spies even with powermock,
+     * because I am using junit 5, therefore I do not
+     * show how the internals of the scheduler policy work
      * */
+
+    @Test
+    public void withTickHandlerCornerCases() {
+
+        setUpCommon();
+
+        ArrayList<TimedTask> tasks = new ArrayList<>();
+
+        // pay attention to arrival time - here it is 2,
+        // therefore if an exception occures, it does not
+        // mean that there are no tasks - it means, that AT THIS POINT
+        // there are no tasks, -> the trick with [while(true), break if exception]
+        // does not work anymore; u may need to relaunch the scheduler or ignore
+        // the exceptions and wait for some period of time; it is better to
+        // know how much time the simulation takes in advance and
+        // do precisely so many iterations and then exit
+
+        tasks.add(new TimedTask(
+                new Task(1, 2, taskIDManager),
+                2
+        ));
+
+        setUpWithTickHandler(tasks);
+
+        /**
+         * at this point, on every tick, tasks will be added
+         * automatically to the scheduler
+         * */
+
+        int beenExecutedCounter = 0;
+
+        while (true) {
+            try {
+                // increase counter before exception occurs
+                ++beenExecutedCounter;
+                scheduler.nextStep();
+            } catch (RunOutOfTasksException e) {
+                break;
+            }
+        }
+
+        // we can never get to the first task with the loop above;
+        assertEquals(1, beenExecutedCounter);
+    }
+
+    @Test
+    public void withTickHandlerIntendedUse() {
+
+        /**
+         * If we know in advance, how much tasks we are running,
+         * it becomes easier to write short piece of code
+         * and never miss any task
+         * */
+
+        // todo
+    }
 }
