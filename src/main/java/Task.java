@@ -1,7 +1,7 @@
 import Exceptions.NegativeTickValueException;
 
 /**
- * Realtime task
+ * Realtime task according to the Liu and Layland
  * */
 
 public class Task {
@@ -29,6 +29,7 @@ public class Task {
     }
 
     public void consumeTick() {
+
         --worstCaseRunningTime;
         if (worstCaseRunningTime < 0) {
             throw new NegativeTickValueException();

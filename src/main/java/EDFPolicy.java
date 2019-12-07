@@ -9,9 +9,6 @@ import java.util.logging.Logger;
  * Contains logic regarding Earliest Deadline First policy
  * */
 
-// BUG  edf policy does not track which objects have been executed
-// neither does it check if the acceptedQueue is empty
-
 public class EDFPolicy {
 
     private ArrayList<Task> pendingTasks;

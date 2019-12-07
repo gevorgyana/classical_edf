@@ -3,7 +3,7 @@ import java.util.Iterator;
 import java.util.PriorityQueue;
 
 /**
- * Delegates requests to a heap
+ * Wrapper around a heap
  * */
 
 public class EDFTasksContainer implements Iterable<Task> {
@@ -23,9 +23,7 @@ public class EDFTasksContainer implements Iterable<Task> {
         return containerImplementation.isEmpty();
     }
 
-    public Task getNextTask() {
-        return containerImplementation.remove();
-    }
+    public Task getNextTask() { return containerImplementation.remove(); }
 
     public boolean add(Task task) {
         return containerImplementation.add(task);

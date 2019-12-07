@@ -1,5 +1,9 @@
-/* A tick generator, use one such instance per
-* simulation */
+/*
+* A tick generator, use one such instance per
+* simulation, it is not intended to be
+* used with a Task, as the Scheduler should be
+* able to decouple ticks from other actions
+*  */
 
 public class LazyTicker {
 

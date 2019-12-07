@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class AdequateTestCases {
+public class EDFSchedulerTests {
 
     private TaskIDManager taskIDManager;
     private Logger logger;
@@ -37,7 +37,7 @@ public class AdequateTestCases {
 
         while (true) {
             try {
-                scheduler.nextStep();
+                 scheduler.nextStep();
             } catch (RunOutOfTasksException e) {
                 break;
             }
