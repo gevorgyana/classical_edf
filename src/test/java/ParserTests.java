@@ -8,10 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * The hardcoded example in this fixture is a simple
- * example that works, for testing with random data,
- * see UsageExamples fixture
- *
  * todo test TimedTask parsing
  * */
 
@@ -48,36 +44,27 @@ public class ParserTests {
      * */
 
     @Test
-    public void positiveTestCases() {
+    public void usageExample() {
         assertAll(() -> {
             Config2TaskConverter converter = new Config2TaskConverter(idManager);
 
-            // the name should be 'tasks.xml'
-            ArrayList<Task> tasks = converter.parseTasks("tasks.xml");
+            ArrayList<TimedTask> tasks = converter.parseTimedTasks("config.xml");
 
             /**
              * The following code shows that the expected tasks match the parsed tasks
              * */
 
-            assertEquals(tasks.size(), test1ExpectedTasks.size());
+            {
+                assertEquals(tasks.size(), test1ExpectedTasks.size());
+                for (int i = 0; i < tasks.size(); ++i) {
 
-            for (int i = 0; i < tasks.size(); ++i) {
+                    TimedTask task = tasks.get(i);
+                    Task expectedTask = test1ExpectedTasks.get(i);
 
-                Task task = tasks.get(i),
-                        expectedTask = test1ExpectedTasks.get(i);
-
-                assertEquals(task.getAbsoluteDeadline(), expectedTask.getAbsoluteDeadline());
-                assertEquals(task.getWorstCaseRunningTime(), expectedTask.getWorstCaseRunningTime());
+                    assertEquals(task.getAbsoluteDeadline(), expectedTask.getAbsoluteDeadline());
+                    assertEquals(task.getWorstCaseRuntime(), expectedTask.getWorstCaseRunningTime());
+                }
             }
         });
-    }
-
-    /**
-     * This test shows what not to do with the parser, otherwise it will fail
-     * */
-
-    @Test
-    public void negativeTestCases() {
-
     }
 }

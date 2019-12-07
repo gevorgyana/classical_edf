@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 
 public class EDFSchedulerTests {
 
@@ -29,7 +27,7 @@ public class EDFSchedulerTests {
     }
 
     @Test
-    public void testWithoutTickHandler() {
+    public void withoutTickHandler() {
 
         // todo check that the log is correct - seems good
 
@@ -78,8 +76,7 @@ public class EDFSchedulerTests {
         ArrayList<TimedTask> tasks = new ArrayList<>();
 
         // pay attention to arrival time - here it is 2,
-        // therefore if an exception occures, it does not
-        // mean that there are no tasks - it means, that AT THIS POINT
+        // therefore if an exception occures, it means, that at THIS POINT
         // there are no tasks, -> the trick with [while(true), break if exception]
         // does not work anymore; u may need to relaunch the scheduler or ignore
         // the exceptions and wait for some period of time; it is better to
@@ -114,15 +111,38 @@ public class EDFSchedulerTests {
         assertEquals(1, beenExecutedCounter);
     }
 
+    /**
+     * It is better to know in advance how much time tasks
+     * will take, if you are doing a simmulation, or keep
+     * the scheduler alive all the time
+     * */
+
     @Test
     public void withTickHandlerIntendedUse() {
 
-        /**
-         * If we know in advance, how much tasks we are running,
-         * it becomes easier to write short piece of code
-         * and never miss any task
-         * */
+        setUpCommon();
 
-        // todo
+        ArrayList<TimedTask> tasks = new ArrayList<>();
+
+        tasks.add(
+                new TimedTask(
+                        new Task(1, 1, taskIDManager),
+                        2
+                )
+        );
+
+        tasks.add(new TimedTask(
+                new Task(1, 2, taskIDManager),
+                2
+        ));
+
+        setUpWithTickHandler(tasks);
+    }
+
+    // todo random generation of execution plans
+
+    @Test // todo move to another test
+    public void integrationWithParser() {
+
     }
 }

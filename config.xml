@@ -23,6 +23,7 @@
             0
         </arrivalTime>
     </task>
+
     <task>
         <worstCaseRuntime>
             2
@@ -31,9 +32,10 @@
             4
         </absoluteDeadline>
         <arrivalTime>
-            
+            2
         </arrivalTime>
     </task>
+
     <task>
         <worstCaseRuntime>
             2
@@ -41,7 +43,11 @@
         <absoluteDeadline>
             10
         </absoluteDeadline>
+        <arrivalTime>
+            3
+        </arrivalTime>
     </task>
+
     <task>
         <worstCaseRuntime>
             2
@@ -49,6 +55,10 @@
         <absoluteDeadline>
             9
         </absoluteDeadline>
+        <arrivalTime>
+            6
+        </arrivalTime>
     </task>
+
 
 </tasks>
