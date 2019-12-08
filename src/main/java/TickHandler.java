@@ -11,7 +11,7 @@ public class TickHandler {
 
     private int getSimulationDeadline(ArrayList<TimedTask> tasks) {
         // todo tasks is empty?..
-        return Collections.max(tasks, Comparator.comparingInt(TimedTask::getAbsoluteDeadline)).getAbsoluteDeadline();
+        return Collections.max(tasks, Comparator.comparingInt(TimedTask::getArrivalTime)).getArrivalTime();
     }
 
     public TickHandler(EDFPolicy scheduler, ArrayList<TimedTask> tasks) {

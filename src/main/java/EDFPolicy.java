@@ -38,10 +38,14 @@ public class EDFPolicy {
 
     // todo this is ugly, but i have to do it: we have to store
     // variable which may be not needed at all if we are
-    // willing to run forever, for example, while (true) with no break;
-    // there is no better place to store it in as for the architecture at present
+    // willing to run forever, for example, there is no better place
+    // to store it now
     public void acceptSimulationTimeout(int endOfExecutionHint) {
         this.endOfExecutionHint = endOfExecutionHint;
+    }
+
+    public int getEndOfExecutionHint() {
+        return endOfExecutionHint;
     }
 
     public void acceptTasks(Task task) {
@@ -136,7 +140,7 @@ public class EDFPolicy {
     }
 
     /**
-     * bug exception should be handled in the scheduler
+     * bug: exception should be handled in the scheduler
      * because otherwise there will b no progress made, if there is
      * no task at current position in time
      * */
@@ -145,7 +149,7 @@ public class EDFPolicy {
 
         // currently, when working with tick handler,
         // the system will only know about the tasks
-        // at the end of the first invocation of this method
+        // at the end of the first invocation of this method todo is it still valid?
 
         nextTick();
 

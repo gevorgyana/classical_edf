@@ -105,7 +105,7 @@ public class EDFSchedulerTests {
 
         /**
          * Task will be accepted only after tick 1 -
-         * therefore even tho we dd 2 ticks, only 1 call
+         * therefore even though we did 2 ticks, only 1 call
          * is registered!
          * */
         verify(spyScheduler, times(1)).acceptTasks((Task) any());
@@ -137,23 +137,25 @@ public class EDFSchedulerTests {
                 )
         );
 
-        tasks.add(new TimedTask(
-                new Task(1, 2, taskIDManager),
-                2
-        ));
+        /**
+         * todo show this
+         * the scheduler will not accept this obviously
+         *
+         * tasks.add(new TimedTask(
+         *                 new Task(1, 2, taskIDManager),
+         *                 2
+         *         ));
+         * */
 
+        // todo verify this with mocks
+        // inside, the handler notifies the scheduler about the longest
+        // task arrival time it has -> therefore in code, we can get the expected
+        // simulation end from the scheduler and loop so many iterations and then exit
         handler = new TickHandler(spyScheduler, tasks);
 
-        ticker.setHandler(handler);
+        spyScheduler.nextStep();
 
-        for (int i = 0; i < 3; ++i) {
-            spyScheduler.nextStep();
-        }
-
-        // this is useless check!!!
-        verify(spyScheduler, times(3)).nextStep();
-
-        // todo complete this test
+        assertEquals(2, spyScheduler.getEndOfExecutionHint());
     }
 
     // todo random generation of execution plans
