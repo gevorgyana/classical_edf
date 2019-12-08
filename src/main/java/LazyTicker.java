@@ -30,6 +30,12 @@ public class LazyTicker {
         this.handler = handler;
     }
 
+    // this interface is needed because otherwise there is
+    // a circular dependency (see comment in EDFSchedulerTests)
+    void setHandler(TickHandler handler) {
+        this.handler = handler;
+    }
+
     public void nextTick() {
         ++ticksCounter;
         if (handler != null) {

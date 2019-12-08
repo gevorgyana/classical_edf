@@ -15,7 +15,11 @@ public class EDFPolicy {
     private EDFTasksContainer acceptedTasks;
     private LazyTicker ticker;
     private Logger logger;
-    Task currentTask = null;
+    private Task currentTask = null;
+
+    // todo this is ugly, but think about it later
+    // private
+    public int endOfExecutionHint = -1;
 
     EDFPolicy(LazyTicker ticker, Logger logger) {
 
@@ -25,18 +29,26 @@ public class EDFPolicy {
         pendingTasks = new ArrayList<>();
     }
 
-    void acceptTasks(ArrayList<Task> tasks) {
+    public void acceptTasks(ArrayList<Task> tasks) {
 
         for (Task task : tasks) {
             acceptTasks(task);
         }
     }
 
-    void acceptTasks(Task task) {
+    // todo this is ugly, but i have to do it: we have to store
+    // variable which may be not needed at all if we are
+    // willing to run forever, for example, while (true) with no break;
+    // there is no better place to store it in as for the architecture at present
+    public void acceptSimulationTimeout(int endOfExecutionHint) {
+        this.endOfExecutionHint = endOfExecutionHint;
+    }
+
+    public void acceptTasks(Task task) {
         pendingTasks.add(task);
     }
 
-    void enforceSchedulability() throws SchedulabilityViolationException {
+    public void enforceSchedulability() throws SchedulabilityViolationException {
 
         if (!pendingTasks.isEmpty()) {
 
@@ -63,11 +75,8 @@ public class EDFPolicy {
         }
     }
 
-    /**
-     * todo Smart scheduler would select a subset of tasks
-     * */
-
-    private void tryConfirmNewTasks() {
+    // private
+    public void tryConfirmNewTasks() {
 
         if (!pendingTasks.isEmpty()) {
 
@@ -85,7 +94,8 @@ public class EDFPolicy {
         }
     }
 
-    private void rePickTaskOnDemand() {
+    //private
+    public void rePickTaskOnDemand() {
 
         if (currentTask == null) {
 
@@ -102,13 +112,14 @@ public class EDFPolicy {
         }
     }
 
-    private void nextTick() {
+    //private
+    public void nextTick() {
 
         ticker.nextTick();
         logger.info("Tick happened - current time is " + ticker.getTicksCounter() + " ticks");
     }
 
-    void executeTask() {
+    public void executeTask() {
 
         if (currentTask != null) {
 
@@ -124,11 +135,27 @@ public class EDFPolicy {
         }
     }
 
-    void nextStep() throws RunOutOfTasksException {
+    /**
+     * bug exception should be handled in the scheduler
+     * because otherwise there will b no progress made, if there is
+     * no task at current position in time
+     * */
+
+    public void nextStep() throws RunOutOfTasksException {
+
+        // currently, when working with tick handler,
+        // the system will only know about the tasks
+        // at the end of the first invocation of this method
 
         tryConfirmNewTasks();
 
-        rePickTaskOnDemand();
+        try {
+            rePickTaskOnDemand();
+        } catch (RunOutOfTasksException e) {
+            // todo always true
+
+        }
+
 
         executeTask();
 

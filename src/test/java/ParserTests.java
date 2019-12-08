@@ -7,10 +7,6 @@ import java.util.ArrayList;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * todo test TimedTask parsing
- * */
-
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ParserTests {
 
@@ -46,7 +42,7 @@ public class ParserTests {
     @Test
     public void usageExample() {
         assertAll(() -> {
-            Config2TaskConverter converter = new Config2TaskConverter(idManager);
+            ConfigParser converter = new ConfigParser(idManager);
 
             ArrayList<TimedTask> tasks = converter.parseTimedTasks("config.xml");
 

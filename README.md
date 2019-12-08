@@ -8,6 +8,10 @@ it is analogous to facebook folly fibers
 // занимать меньше времени, чем записано
 // в worstCaseRuntime
 
+    /**
+     * todo Smart scheduler would select a subset of tasks
+     * */
+
 /**
  * Earliest deadline first policy
  *

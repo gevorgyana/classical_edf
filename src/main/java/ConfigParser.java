@@ -15,14 +15,14 @@ import static org.w3c.dom.Node.ELEMENT_NODE;
 
 /**
  * A simple parser of xml file used to
- * retrieve Task and todo TimedTask objects from files
+ * retrieve Task and TimedTask objects
  * */
 
-public class Config2TaskConverter {
+public class ConfigParser {
 
     private TaskIDManager taskIDManager;
 
-    public Config2TaskConverter(TaskIDManager taskIDManager) {
+    public ConfigParser(TaskIDManager taskIDManager) {
         this.taskIDManager = taskIDManager;
     }
 

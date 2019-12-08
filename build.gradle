@@ -15,4 +15,7 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.1.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.1.0'
     testImplementation 'org.mockito:mockito-core:2.7.22'
+
+    // this is needed for mockito
+    compile group: 'net.bytebuddy', name: 'byte-buddy', version: '1.9.7'
 }

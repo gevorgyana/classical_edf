@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 public class EDFSchedulerTests {
 
@@ -23,13 +24,11 @@ public class EDFSchedulerTests {
 
     private void setUpWithTickHandler(ArrayList<TimedTask> tasks) {
         handler = new TickHandler(scheduler, tasks);
-        ticker = new LazyTicker(handler);
+        ticker.setHandler(handler);
     }
 
     @Test
     public void withoutTickHandler() {
-
-        // todo check that the log is correct - seems good
 
         setUpCommon();
 
@@ -43,11 +42,27 @@ public class EDFSchedulerTests {
             scheduler.acceptTasks(tasks);
         });
 
+        /**
+         * это дичь. надо знать зраанее, сколько времени займет симуляци.
+         * иначе это бред. ексепшен должен быть обработан внутри класса планирвания
+         * (см. другие комментарии)
+         * */
+
+        /*
         while (true) {
             try {
                  scheduler.nextStep();
             } catch (RunOutOfTasksException e) {
                 break;
+            }
+        }
+         */
+
+        for (int i = 0; i < 5; ++i) {
+            try {
+                scheduler.nextStep();
+            } catch (RunOutOfTasksException e) {
+
             }
         }
     }
@@ -57,16 +72,17 @@ public class EDFSchedulerTests {
 
         setUpCommon();
 
-        assertThrows(RunOutOfTasksException.class, () -> {
+        /**
+         * this method cannot throw;
+         * explanation: the scheduler cannot decide
+         * when it finished, it may never finish, because
+         * at any instant, there may be new tasks
+         * */
+
+        assertAll(() -> {
             scheduler.nextStep();
         });
     }
-
-    /**
-     * it is not possible to use spies even with powermock,
-     * because I am using junit 5, therefore I do not
-     * show how the internals of the scheduler policy work
-     * */
 
     @Test
     public void withTickHandlerCornerCases() {
@@ -79,7 +95,7 @@ public class EDFSchedulerTests {
         // therefore if an exception occures, it means, that at THIS POINT
         // there are no tasks, -> the trick with [while(true), break if exception]
         // does not work anymore; u may need to relaunch the scheduler or ignore
-        // the exceptions and wait for some period of time; it is better to
+        // the exceptions for some period of time; it is better to
         // know how much time the simulation takes in advance and
         // do precisely so many iterations and then exit
 
@@ -95,32 +111,36 @@ public class EDFSchedulerTests {
          * automatically to the scheduler
          * */
 
-        int beenExecutedCounter = 0;
+        EDFPolicy spyScheduler = spy(scheduler);
 
-        while (true) {
+        for (int i = 0; i < 2; ++i) {
             try {
-                // increase counter before exception occurs
-                ++beenExecutedCounter;
                 scheduler.nextStep();
             } catch (RunOutOfTasksException e) {
-                break;
+
             }
         }
 
-        // we can never get to the first task with the loop above;
-        assertEquals(1, beenExecutedCounter);
+        verify(spyScheduler, times(1)).nextStep();
+        verify(spyScheduler, never()).acceptTasks((Task) any());
     }
 
     /**
      * It is better to know in advance how much time tasks
-     * will take, if you are doing a simmulation, or keep
-     * the scheduler alive all the time
+     * will take (if you are doing a simulation), or keep
+     * the scheduler alive all the time; other words, it does
+     * not make sense to demand from a scheduler being able to stop
+     * as it does not know if there will be any task soon
      * */
 
     @Test
     public void withTickHandlerIntendedUse() {
 
-        setUpCommon();
+        taskIDManager = new TaskIDManager();
+        logger = Logger.getLogger("without handler");
+        ticker = new LazyTicker();
+        scheduler = new EDFPolicy(ticker, logger);
+        EDFPolicy spyScheduler = spy(scheduler);
 
         ArrayList<TimedTask> tasks = new ArrayList<>();
 
@@ -136,7 +156,24 @@ public class EDFSchedulerTests {
                 2
         ));
 
-        setUpWithTickHandler(tasks);
+        // this is okay, ticker has done what it was supposed to do
+        // but it could also notify scheduler, ?? todo
+        handler = new TickHandler(spyScheduler, tasks);
+
+        // this works too
+        ticker.setHandler(handler);
+
+        for (int i = 0; i < 3; ++i) {
+            try {
+                spyScheduler.nextStep();
+            } catch (RunOutOfTasksException e) {
+
+            }
+        }
+
+        verify(spyScheduler, times(3)).nextStep();
+
+        // todo complete this test
     }
 
     // todo random generation of execution plans
