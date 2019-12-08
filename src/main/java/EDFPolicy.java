@@ -147,18 +147,19 @@ public class EDFPolicy {
         // the system will only know about the tasks
         // at the end of the first invocation of this method
 
+        nextTick();
+
         tryConfirmNewTasks();
 
         try {
             rePickTaskOnDemand();
         } catch (RunOutOfTasksException e) {
-            // todo always true
-
+            // we know we are not doing any work,
+            // but there mat be more work soon
         }
-
 
         executeTask();
 
-        nextTick();
+
     }
 }

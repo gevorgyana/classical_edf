@@ -33,6 +33,8 @@ public class TickHandler {
                 nextToBeScheduled.add(remainingTasks.get(i).getTaskImplementation());
             }
         }
+
+        nextToBeScheduled = nextToBeScheduled;
     }
 
     // todo this method should be an override of an abstract method

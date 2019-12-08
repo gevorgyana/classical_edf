@@ -42,28 +42,8 @@ public class EDFSchedulerTests {
             scheduler.acceptTasks(tasks);
         });
 
-        /**
-         * это дичь. надо знать зраанее, сколько времени займет симуляци.
-         * иначе это бред. ексепшен должен быть обработан внутри класса планирвания
-         * (см. другие комментарии)
-         * */
-
-        /*
-        while (true) {
-            try {
-                 scheduler.nextStep();
-            } catch (RunOutOfTasksException e) {
-                break;
-            }
-        }
-         */
-
         for (int i = 0; i < 5; ++i) {
-            try {
-                scheduler.nextStep();
-            } catch (RunOutOfTasksException e) {
-
-            }
+            scheduler.nextStep();
         }
     }
 
@@ -87,42 +67,48 @@ public class EDFSchedulerTests {
     @Test
     public void withTickHandlerCornerCases() {
 
-        setUpCommon();
+        taskIDManager = new TaskIDManager();
+        logger = Logger.getLogger("without handler");
+        ticker = new LazyTicker();
+        scheduler = new EDFPolicy(ticker, logger);
+        EDFPolicy spyScheduler = spy(scheduler);
 
         ArrayList<TimedTask> tasks = new ArrayList<>();
 
-        // pay attention to arrival time - here it is 2,
-        // therefore if an exception occures, it means, that at THIS POINT
-        // there are no tasks, -> the trick with [while(true), break if exception]
-        // does not work anymore; u may need to relaunch the scheduler or ignore
-        // the exceptions for some period of time; it is better to
-        // know how much time the simulation takes in advance and
-        // do precisely so many iterations and then exit
+        /**
+         * pay attention to arrival time - here it is 2,
+         * therefore if an exception occures, it means, that at THIS POINT
+         * there are no tasks, -> the trick with [while(true), break if exception]
+         * does not work anymore; u may need to relaunch the scheduler or ignore
+         * the exceptions for some period of time; it is better to
+         * know how much time the simulation takes in advance and
+         * do precisely so many iterations and then exit
+         * */
 
         tasks.add(new TimedTask(
-                new Task(1, 2, taskIDManager),
+                new Task(2, 1, taskIDManager),
                 2
         ));
 
-        setUpWithTickHandler(tasks);
+        handler = new TickHandler(spyScheduler, tasks);
+
+        ticker.setHandler(handler);
 
         /**
          * at this point, on every tick, tasks will be added
          * automatically to the scheduler
          * */
 
-        EDFPolicy spyScheduler = spy(scheduler);
+        spyScheduler.nextStep();
+        // second invocation makes this test pass
+        spyScheduler.nextStep();
 
-        for (int i = 0; i < 2; ++i) {
-            try {
-                scheduler.nextStep();
-            } catch (RunOutOfTasksException e) {
-
-            }
-        }
-
-        verify(spyScheduler, times(1)).nextStep();
-        verify(spyScheduler, never()).acceptTasks((Task) any());
+        /**
+         * Task will be accepted only after tick 1 -
+         * therefore even tho we dd 2 ticks, only 1 call
+         * is registered!
+         * */
+        verify(spyScheduler, times(1)).acceptTasks((Task) any());
     }
 
     /**
@@ -156,30 +142,19 @@ public class EDFSchedulerTests {
                 2
         ));
 
-        // this is okay, ticker has done what it was supposed to do
-        // but it could also notify scheduler, ?? todo
         handler = new TickHandler(spyScheduler, tasks);
 
-        // this works too
         ticker.setHandler(handler);
 
         for (int i = 0; i < 3; ++i) {
-            try {
-                spyScheduler.nextStep();
-            } catch (RunOutOfTasksException e) {
-
-            }
+            spyScheduler.nextStep();
         }
 
+        // this is useless check!!!
         verify(spyScheduler, times(3)).nextStep();
 
         // todo complete this test
     }
 
     // todo random generation of execution plans
-
-    @Test // todo move to another test
-    public void integrationWithParser() {
-
-    }
 }
