@@ -4,15 +4,6 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
-/**
- * todo currently it is not known when
- * the latest execution happen - already fixed
- *
- * - randomly generate execution plan
- * - read it from xml
- * - schedule until (?)
- * */
-
 public class IntegrationTest {
     @Test
     public void main() {
@@ -29,12 +20,8 @@ public class IntegrationTest {
         TickHandler handler = new TickHandler(scheduler, tasks);
         ticker.setHandler(handler);
 
-        while (true) {
-            try {
-                scheduler.nextStep();
-            } catch (RunOutOfTasksException e) {
-
-            }
+        for (int i = 0; i < scheduler.getEndOfExecutionHint(); ++i) {
+            scheduler.nextStep();
         }
 
     }
