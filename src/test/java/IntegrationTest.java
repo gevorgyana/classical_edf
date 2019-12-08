@@ -9,7 +9,7 @@ public class IntegrationTest {
     public void main() {
 
         TaskIDManager taskIDManager = new TaskIDManager();
-        Logger logger = Logger.getLogger("without handler");
+        Logger logger = Logger.getLogger("wit handler");
         LazyTicker ticker = new LazyTicker();
         EDFPolicy scheduler = new EDFPolicy(ticker, logger);
 
